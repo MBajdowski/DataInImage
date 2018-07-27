@@ -1,0 +1,14 @@
+# IntelliJ
+.idea/workspace.xml
+.idea/tasks.xml
+
+# Compiled
+out/
+target/
+
+# Static
+*.gif
+*.bmp
+*.jpg
+*.png
+*.txt
