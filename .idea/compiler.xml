@@ -7,9 +7,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="dataInImage" />
+        <module name="DataInImage" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="DataInImage" target="1.8" />
       <module name="dataInImage" target="1.8" />
     </bytecodeTargetLevel>
   </component>

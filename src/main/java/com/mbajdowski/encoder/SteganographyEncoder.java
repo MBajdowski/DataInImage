@@ -1,4 +1,4 @@
-package com.mbajdowski;
+package com.mbajdowski.encoder;
 
 
 import com.sun.istack.internal.NotNull;
@@ -40,11 +40,11 @@ public class SteganographyEncoder {
     }
 
     public String decodeString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         byte[] decodedByteArray = decode();
 
-        for (int i = 0; i < decodedByteArray.length; i++) {
-            char character = (char) decodedByteArray[i];
+        for (byte aDecodedByteArray : decodedByteArray) {
+            char character = (char) aDecodedByteArray;
             if (character < 32 || character > 126) break;
             sb.append(character);
         }
@@ -72,25 +72,25 @@ public class SteganographyEncoder {
         return encode(finalBytes);
     }
 
-    public File decodeFile() throws DecodignException {
+    public File decodeFile() throws DecodingException {
         byte[] bytes = decode();
         int nameSize = byteArrayToInt(Arrays.copyOfRange(bytes, 0, 4));
         if(nameSize<=0||nameSize>(bytes.length/4)){
-            throw new DecodignException("NameSize", nameSize);
+            throw new DecodingException("NameSize", nameSize);
         }
         int fileSize = byteArrayToInt(Arrays.copyOfRange(bytes, 4, 8));
         if(fileSize<0||fileSize>(bytes.length/4)){
-            throw new DecodignException("DecodedFileSize", fileSize);
+            throw new DecodingException("DecodedFileSize", fileSize);
         }
         if(nameSize+fileSize>(bytes.length/4)){
-            throw new DecodignException("NameSize and DecodedFileSize", nameSize+fileSize);
+            throw new DecodingException("NameSize and DecodedFileSize", nameSize+fileSize);
         }
         byte[] nameBytes = Arrays.copyOfRange(bytes, 8, 8 + nameSize);
         byte[] fileBytes = Arrays.copyOfRange(bytes, 8 + nameSize, 8 + nameSize + fileSize);
 
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < nameBytes.length; i++) {
-            sb.append((char) nameBytes[i]);
+        for (byte nameByte : nameBytes) {
+            sb.append((char) nameByte);
         }
         String name = sb.toString();
         File file = new File("decoded_" + name);
@@ -129,7 +129,7 @@ public class SteganographyEncoder {
         int charOffset = 0;
 
         pixels[0] &= mask;
-        for (int i = 0; i < bytes.length; i++) {
+        for (byte aByte : bytes) {
             while (charOffset < 8) {
                 if (curColor < 0) {
                     curColor = 2;
@@ -137,7 +137,7 @@ public class SteganographyEncoder {
                     pixels[curPix] &= mask;
                 }
 
-                char temp = (char) ((bytes[i] >> 8 - bitsFromColor - charOffset) & smallMask);
+                char temp = (char) ((aByte >> 8 - bitsFromColor - charOffset) & smallMask);
                 pixels[curPix] |= (temp << curColor * 8);
 
                 charOffset += bitsFromColor;
@@ -208,9 +208,9 @@ public class SteganographyEncoder {
             return 0;
         }
         int result = 0;
-        for (int i = 0; i < bytes.length; i++) {
+        for (byte aByte : bytes) {
             result <<= 8;
-            result |= bytes[i];
+            result |= aByte;
         }
 
         return result;
