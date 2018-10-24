@@ -1,6 +1,5 @@
-# IntelliJ
-.idea/workspace.xml
-.idea/tasks.xml
+# Intellij
+.idea/
 
 # Compiled
 out/
@@ -8,7 +7,5 @@ target/
 
 # Static
 *.gif
-*.bmp
 *.jpg
 *.png
-*.txt
