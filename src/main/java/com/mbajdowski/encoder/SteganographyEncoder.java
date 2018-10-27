@@ -13,12 +13,12 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class SteganographyEncoder {
+    private final BufferedImage bi;
     private int bitsFromColor;
     private int mask;
-    private BufferedImage bi;
 
     public SteganographyEncoder(@NotNull BufferedImage bufferedImage) {
-        new SteganographyEncoder(bufferedImage, 2);
+        this(bufferedImage, 2);
     }
 
     public SteganographyEncoder(@NotNull BufferedImage bufferedImage, int bitsFromColor) {
@@ -27,13 +27,17 @@ public class SteganographyEncoder {
     }
 
     public BufferedImage encodeString(String message) throws InvalidArgumentException {
-        if (message.length() == 0) {
+        if (message == null || message.length() == 0) {
             throw new InvalidArgumentException(new String[]{"Message can not be empty!"});
         }
         char[] characters = message.toCharArray();
-        byte[] bytes = new byte[characters.length];
+        byte[] messageLen = intToByteArray(message.length());
+        byte[] bytes = new byte[4 + characters.length];
+        for (int i = 0; i < 4; i++) {
+            bytes[i] = messageLen[i];
+        }
         for (int i = 0; i < characters.length; i++) {
-            bytes[i] = (byte) characters[i];
+            bytes[i + 4] = (byte) characters[i];
         }
 
         return encode(bytes);
@@ -43,9 +47,10 @@ public class SteganographyEncoder {
         StringBuilder sb = new StringBuilder();
         byte[] decodedByteArray = decode();
 
-        for (byte aDecodedByteArray : decodedByteArray) {
-            char character = (char) aDecodedByteArray;
-            if (character < 32 || character > 126) break;
+        int messageLen = byteArrayToInt(Arrays.copyOfRange(decodedByteArray, 0, 4));
+
+        for (int i = 0; i < messageLen; i++) {
+            char character = (char) decodedByteArray[i + 4];
             sb.append(character);
         }
 
@@ -72,18 +77,18 @@ public class SteganographyEncoder {
         return encode(finalBytes);
     }
 
-    public File decodeFile() throws DecodingException {
+    public File decodeFile(String resultPath) throws DecodingException {
         byte[] bytes = decode();
         int nameSize = byteArrayToInt(Arrays.copyOfRange(bytes, 0, 4));
-        if(nameSize<=0||nameSize>(bytes.length/4)){
+        if (nameSize <= 0 || nameSize > (bytes.length - 8)) {
             throw new DecodingException("NameSize", nameSize);
         }
         int fileSize = byteArrayToInt(Arrays.copyOfRange(bytes, 4, 8));
-        if(fileSize<0||fileSize>(bytes.length/4)){
+        if (fileSize < 0 || fileSize > (bytes.length - 8)) {
             throw new DecodingException("DecodedFileSize", fileSize);
         }
-        if(nameSize+fileSize>(bytes.length/4)){
-            throw new DecodingException("NameSize and DecodedFileSize", nameSize+fileSize);
+        if (nameSize + fileSize > (bytes.length - 8)) {
+            throw new DecodingException("NameSize and DecodedFileSize", nameSize + fileSize);
         }
         byte[] nameBytes = Arrays.copyOfRange(bytes, 8, 8 + nameSize);
         byte[] fileBytes = Arrays.copyOfRange(bytes, 8 + nameSize, 8 + nameSize + fileSize);
@@ -93,7 +98,7 @@ public class SteganographyEncoder {
             sb.append((char) nameByte);
         }
         String name = sb.toString();
-        File file = new File("decoded_" + name);
+        File file = new File(resultPath + "decoded_" + name);
         try {
             FileUtils.writeByteArrayToFile(file, fileBytes);
         } catch (IOException e) {
@@ -112,13 +117,14 @@ public class SteganographyEncoder {
         mask = calculateMask(bitsFromColor);
     }
 
-    public int getMaxNoOfBytes(int[] pixels) {
-        return Math.floorDiv(pixels.length * bitsFromColor * 3, 8);
+    public int getMaxNoOfBytes() {
+        int nrOfPixels = this.bi.getWidth() * this.bi.getHeight();
+        return Math.floorDiv(nrOfPixels * bitsFromColor * 3, 8);
     }
 
     private BufferedImage encode(byte[] bytes) {
         int[] pixels = this.bi.getRGB(0, 0, this.bi.getWidth(), this.bi.getHeight(), null, 0, this.bi.getWidth());
-        int maxNoOfBytes = getMaxNoOfBytes(pixels);
+        int maxNoOfBytes = getMaxNoOfBytes();
         if (bytes.length > maxNoOfBytes) {
             throw new IllegalArgumentException("File to big, max no of bytes: " + maxNoOfBytes);
         }
@@ -146,20 +152,22 @@ public class SteganographyEncoder {
             charOffset %= 8;
         }
 
-        BufferedImage bufferedImage = new BufferedImage(this.bi.getWidth(), this.bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage bufferedImage =
+                new BufferedImage(this.bi.getWidth(), this.bi.getHeight(), BufferedImage.TYPE_INT_ARGB);
         bufferedImage.setRGB(0, 0, this.bi.getWidth(), this.bi.getHeight(), pixels, 0, this.bi.getWidth());
         return bufferedImage;
     }
 
     private byte[] decode() {
         int[] pixels = this.bi.getRGB(0, 0, this.bi.getWidth(), this.bi.getHeight(), null, 0, this.bi.getWidth());
-        int maxNoOfBytes = getMaxNoOfBytes(pixels);
+        int maxNoOfBytes = getMaxNoOfBytes();
         byte[] result = new byte[maxNoOfBytes];
         int smallMask = (int) (Math.pow(2, bitsFromColor) - 1);
         int curColor = 2;
         int curPix = 0;
         int charOffset = 0;
 
+        //TODO: Optimize this code to decode only needed number of bytes and not the whole byte array
         for (int i = 0; i < maxNoOfBytes; i++) {
             byte oneByte = 0;
             while (charOffset < 8) {
@@ -208,9 +216,11 @@ public class SteganographyEncoder {
             return 0;
         }
         int result = 0;
+        int littleMask = 255;
         for (byte aByte : bytes) {
+            int intFromByte = littleMask&aByte;
             result <<= 8;
-            result |= aByte;
+            result |= intFromByte;
         }
 
         return result;
