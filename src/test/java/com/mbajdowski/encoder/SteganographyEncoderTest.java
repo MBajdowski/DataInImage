@@ -1,6 +1,5 @@
 package com.mbajdowski.encoder;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -61,7 +60,7 @@ public class SteganographyEncoderTest {
     }
 
     @Test
-    public void encodeStringShouldEncodeValidString() throws InvalidArgumentException {
+    public void encodeStringShouldEncodeValidString() throws IllegalArgumentException  {
         String testString = "Test String";
         int[] expectedPixels = afterStringTestImg
                 .getRGB(0, 0, afterStringTestImg.getWidth(), afterStringTestImg.getHeight(), null, 0,
@@ -74,7 +73,7 @@ public class SteganographyEncoderTest {
     }
 
     @Test
-    public void encodeStringShouldThrowExceptionIfMessageTooLong() throws InvalidArgumentException {
+    public void encodeStringShouldThrowExceptionIfMessageTooLong() throws IllegalArgumentException  {
         String tooLongString =
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer congue nulla a ipsum rhoncus mollis" +
                         ". Curabitur eu varius lacus. Pellentesque finibus nunc eget sapien accumsan efficitur sed in" +
@@ -87,9 +86,9 @@ public class SteganographyEncoderTest {
     }
 
     @Test
-    public void encodeStringShouldThrowExceptionIfMessageEmpty() throws InvalidArgumentException {
+    public void encodeStringShouldThrowExceptionIfMessageEmpty() throws IllegalArgumentException  {
         String emptyString = "";
-        expectedEx.expect(InvalidArgumentException.class);
+        expectedEx.expect(IllegalArgumentException.class);
         expectedEx.expectMessage("Message can not be empty!");
 
         steganographyEncoder.encodeString(emptyString);

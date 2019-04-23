@@ -1,5 +1,6 @@
 # Intellij
 .idea/
+*.iml
 
 # Compiled
 out/
@@ -9,3 +10,4 @@ target/
 *.gif
 *.jpg
 *.png
+*.bmp

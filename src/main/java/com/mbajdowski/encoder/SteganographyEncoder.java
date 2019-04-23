@@ -1,8 +1,5 @@
 package com.mbajdowski.encoder;
 
-
-import com.sun.istack.internal.NotNull;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -17,18 +14,18 @@ public class SteganographyEncoder {
     private int bitsFromColor;
     private int mask;
 
-    public SteganographyEncoder(@NotNull BufferedImage bufferedImage) {
+    public SteganographyEncoder(BufferedImage bufferedImage) {
         this(bufferedImage, 2);
     }
 
-    public SteganographyEncoder(@NotNull BufferedImage bufferedImage, int bitsFromColor) {
+    public SteganographyEncoder(BufferedImage bufferedImage, int bitsFromColor) {
         setBitsFromColor(bitsFromColor);
         this.bi = bufferedImage;
     }
 
-    public BufferedImage encodeString(String message) throws InvalidArgumentException {
+    public BufferedImage encodeString(String message) throws IllegalArgumentException  {
         if (message == null || message.length() == 0) {
-            throw new InvalidArgumentException(new String[]{"Message can not be empty!"});
+            throw new IllegalArgumentException("Message can not be empty!");
         }
         char[] characters = message.toCharArray();
         byte[] messageLen = intToByteArray(message.length());
@@ -218,7 +215,7 @@ public class SteganographyEncoder {
         int result = 0;
         int littleMask = 255;
         for (byte aByte : bytes) {
-            int intFromByte = littleMask&aByte;
+            int intFromByte = littleMask & aByte;
             result <<= 8;
             result |= intFromByte;
         }
